@@ -1,0 +1,38 @@
+{
+  "name": "vitanet-server",
+  "version": "1.0.0",
+  "description": "VitaNet API server — Independent Creator Network",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "lint": "eslint src/",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit",
+    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch",
+    "seed:admin": "node scripts/seed-admin.js",
+    "healthcheck": "node scripts/healthcheck.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "mongoose": "^8.14.1",
+    "cors": "^2.8.5",
+    "helmet": "^8.1.0",
+    "cookie-parser": "^1.4.7",
+    "zod": "^3.25.67",
+    "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "express-rate-limit": "^7.5.0",
+    "@aws-sdk/client-s3": "^3.817.0",
+    "@aws-sdk/s3-request-presigner": "^3.817.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.28.0",
+    "jest": "^29.7.0",
+    "@jest/globals": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

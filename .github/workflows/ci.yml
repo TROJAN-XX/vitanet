@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  server:
+    name: Server CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: server
+
+      - name: Lint
+        run: npm run lint --if-present
+        working-directory: server
+
+      - name: Run tests
+        run: npm test --if-present
+        working-directory: server
+        env:
+          NODE_ENV: test
+
+  client:
+    name: Client CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: client
+
+      - name: Lint
+        run: npm run lint --if-present
+        working-directory: client
+
+      - name: Build
+        run: npm run build
+        working-directory: client
+        env:
+          VITE_API_BASE_URL: https://api.example.com/api/v1
+          VITE_TURNSTILE_SITE_KEY: 0x0000000000000000000000
