@@ -1,0 +1,19 @@
+name: Orphan Media Cleanup
+
+on:
+  schedule:
+    # Run every day at 03:00 UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    name: Purge Orphan Media
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Orphan Cleanup
+        run: |
+          curl -s -X POST "${{ secrets.API_BASE_URL }}/api/v1/admin/cleanup-orphans" \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_MAINTENANCE_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail-with-body

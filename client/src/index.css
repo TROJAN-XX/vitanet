@@ -542,6 +542,16 @@ input, textarea, select {
     padding-top: calc(var(--nav-height) + var(--space-md));
     padding-bottom: calc(var(--bottom-nav-height) + var(--space-md));
   }
+
+  .nav-desktop {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .nav-mobile {
+    display: none !important;
+  }
 }
 
 /* ── Reduced Motion ── */
