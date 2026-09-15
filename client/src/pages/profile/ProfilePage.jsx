@@ -27,16 +27,25 @@ export default function ProfilePage() {
       setLoading(true);
       setError(null);
       try {
-        const [profileRes, postsRes] = await Promise.all([
-          api.get(`/users/${username}`),
-          api.get(`/users/${username}/posts`),
-        ]);
+        if (activeTab === 'saved' && isSelf) {
+          const res = await api.get('/posts/saved');
+          if (!cancelled) {
+            setPosts(res.data.posts || []);
+            setNextCursor(res.data.nextCursor);
+            setHasMore(res.data.hasMore);
+          }
+        } else {
+          const [profileRes, postsRes] = await Promise.all([
+            api.get(`/users/${username}`),
+            api.get(`/users/${username}/posts`),
+          ]);
 
-        if (!cancelled) {
-          setProfile(profileRes.data.user);
-          setPosts(postsRes.data.posts || []);
-          setNextCursor(postsRes.data.nextCursor);
-          setHasMore(postsRes.data.hasMore);
+          if (!cancelled) {
+            setProfile(profileRes.data.user);
+            setPosts(postsRes.data.posts || []);
+            setNextCursor(postsRes.data.nextCursor);
+            setHasMore(postsRes.data.hasMore);
+          }
         }
       } catch (err) {
         if (!cancelled) {
@@ -49,13 +58,16 @@ export default function ProfilePage() {
 
     loadProfileAndPosts();
     return () => { cancelled = true; };
-  }, [username]);
+  }, [username, activeTab, isSelf]);
 
   const loadMorePosts = async () => {
     if (!nextCursor || loadingMore) return;
     try {
       setLoadingMore(true);
-      const res = await api.get(`/users/${username}/posts?cursor=${nextCursor}`);
+      const url = activeTab === 'saved' && isSelf
+        ? `/posts/saved?cursor=${nextCursor}`
+        : `/users/${username}/posts?cursor=${nextCursor}`;
+      const res = await api.get(url);
       if (res?.data?.posts) {
         setPosts((prev) => [...prev, ...res.data.posts]);
         setNextCursor(res.data.nextCursor);
@@ -116,20 +128,41 @@ export default function ProfilePage() {
             display: 'flex',
             borderBottom: '1px solid var(--color-glass-border)',
             marginBottom: 'var(--space-lg)',
+            gap: 'var(--space-md)',
           }}
         >
           <button
             onClick={() => setActiveTab('posts')}
             style={{
-              padding: 'var(--space-sm) var(--space-lg)',
+              padding: 'var(--space-sm) var(--space-md)',
               borderBottom: activeTab === 'posts' ? '2px solid var(--color-primary)' : '2px solid transparent',
               color: activeTab === 'posts' ? 'var(--color-primary-light)' : 'var(--color-text-secondary)',
               fontWeight: activeTab === 'posts' ? 'var(--weight-bold)' : 'var(--weight-medium)',
               fontSize: 'var(--text-sm)',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
             }}
           >
             Posts ({profile.postsCount || 0})
           </button>
+          {isSelf && (
+            <button
+              onClick={() => setActiveTab('saved')}
+              style={{
+                padding: 'var(--space-sm) var(--space-md)',
+                borderBottom: activeTab === 'saved' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                color: activeTab === 'saved' ? 'var(--color-primary-light)' : 'var(--color-text-secondary)',
+                fontWeight: activeTab === 'saved' ? 'var(--weight-bold)' : 'var(--weight-medium)',
+                fontSize: 'var(--text-sm)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Saved Bookmarks
+            </button>
+          )}
         </div>
 
         {/* Posts Grid */}
@@ -138,16 +171,27 @@ export default function ProfilePage() {
             className="card card-glass"
             style={{ textAlign: 'center', padding: 'var(--space-3xl) var(--space-lg)', color: 'var(--color-text-secondary)' }}
           >
-            <div style={{ fontSize: 'var(--text-3xl)', marginBottom: 'var(--space-sm)' }}>📷</div>
+            <div style={{ fontSize: 'var(--text-3xl)', marginBottom: 'var(--space-sm)' }}>
+              {activeTab === 'saved' ? '🔖' : '📷'}
+            </div>
             <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-lg)', color: 'var(--color-text-primary)' }}>
-              No Posts Yet
+              {activeTab === 'saved' ? 'No Saved Bookmarks' : 'No Posts Yet'}
             </h3>
             <p style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-xs)' }}>
-              {isSelf ? 'Share your first photo or video with the network!' : `@${profile.username} hasn't published any posts.`}
+              {isSelf
+                ? (activeTab === 'saved'
+                    ? 'You have not bookmarked any posts yet. Click the bookmark icon on any post to save it here.'
+                    : 'Share your first photo or video with the network!')
+                : `@${profile.username} hasn't published any posts.`}
             </p>
-            {isSelf && (
+            {isSelf && activeTab === 'posts' && (
               <Link to="/create" className="btn btn-primary btn-sm" style={{ marginTop: 'var(--space-md)' }}>
                 Create Post
+              </Link>
+            )}
+            {isSelf && activeTab === 'saved' && (
+              <Link to="/explore" className="btn btn-secondary btn-sm" style={{ marginTop: 'var(--space-md)' }}>
+                Explore Posts
               </Link>
             )}
           </div>
