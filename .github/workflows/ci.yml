@@ -59,5 +59,7 @@ jobs:
         run: npm run build
         working-directory: client
         env:
-          VITE_API_BASE_URL: https://api.example.com/api/v1
-          VITE_TURNSTILE_SITE_KEY: 0x0000000000000000000000
+          # Use Turnstile always-pass test key for CI builds
+          VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+          # Point to production Render API URL (non-secret, public value)
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://vitanet-api.onrender.com/api/v1' }}

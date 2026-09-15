@@ -32,9 +32,15 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", 'https://challenges.cloudflare.com'],
       frameSrc: ["'self'", 'https://challenges.cloudflare.com'],
-      connectSrc: ["'self'", env.APP_ORIGIN],
-      imgSrc: ["'self'", 'data:', 'blob:'],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      // Allow API calls from Cloudflare Pages and local dev
+      connectSrc: ["'self'", env.APP_ORIGIN, env.API_ORIGIN],
+      // Allow R2 presigned GET URLs for images and avatars
+      imgSrc: ["'self'", 'data:', 'blob:', 'https://*.r2.cloudflarestorage.com'],
+      // Allow R2 presigned GET URLs for video content
+      mediaSrc: ["'self'", 'blob:', 'https://*.r2.cloudflarestorage.com'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      // Allow Google Fonts (Inter, Outfit loaded in index.html)
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
     },
   },
 }));
