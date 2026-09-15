@@ -394,3 +394,99 @@ export async function triggerOrphanCleanup(req, res) {
     requestId: req.requestId,
   });
 }
+
+/**
+ * GET /admin/usage
+ * Detailed storage ledger for media objects and per-user consumption.
+ */
+export async function getPlatformUsage(req, res) {
+  const [activeStats, pendingDeleteCount, userAgg] = await Promise.all([
+    MediaUsage.aggregate([
+      { $match: { status: 'active' } },
+      { $group: { _id: null, totalBytes: { $sum: '$bytes' }, count: { $sum: 1 } } },
+    ]),
+    MediaUsage.countDocuments({ status: 'pending_delete' }),
+    MediaUsage.aggregate([
+      { $match: { status: 'active' } },
+      { $group: { _id: '$userId', totalBytes: { $sum: '$bytes' } } },
+      { $sort: { totalBytes: -1 } },
+      { $limit: 100 },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          userId: '$_id',
+          username: '$user.username',
+          totalBytes: 1,
+        },
+      },
+    ]),
+  ]);
+
+  const totalActiveBytes = activeStats[0]?.totalBytes || 0;
+  const totalObjectsCount = activeStats[0]?.count || 0;
+
+  res.json({
+    success: true,
+    data: {
+      totalActiveBytes,
+      totalObjectsCount,
+      pendingDeleteCount,
+      userUsages: userAgg.map((u) => ({
+        userId: u.userId,
+        username: u.username || 'unknown',
+        totalBytes: u.totalBytes,
+      })),
+    },
+    requestId: req.requestId,
+  });
+}
+
+/**
+ * POST /admin/posts/:postId/remove
+ * Force take down post with media cascade.
+ */
+export async function removePost(req, res) {
+  const { postId } = req.params;
+  const { reason = 'Violated community guidelines' } = req.body || {};
+
+  if (!isValidObjectId(postId)) throw ApiError.badRequest('Invalid post ID');
+
+  const post = await Post.findById(postId);
+  if (!post) throw ApiError.notFound('Post not found');
+
+  post.moderationStatus = 'removed';
+  post.deletedAt = new Date();
+  await post.save();
+
+  // Mark all referenced media as pending_delete
+  const objectKeys = post.media.map((m) => m.objectKey);
+  if (objectKeys.length > 0) {
+    await MediaUsage.updateMany(
+      { objectKey: { $in: objectKeys }, status: 'active' },
+      { status: 'pending_delete', deletedAt: new Date() }
+    );
+  }
+
+  // Record immutable audit event
+  await AuditEvent.create({
+    actorUserId: req.user._id,
+    action: 'post_remove',
+    targetType: 'post',
+    targetId: post._id,
+    metadata: { reason, authorId: post.authorId },
+  });
+
+  res.json({
+    success: true,
+    data: { message: 'Post successfully removed by moderation' },
+    requestId: req.requestId,
+  });
+}

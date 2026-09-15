@@ -15,6 +15,7 @@ import Notification from '../models/Notification.js';
 import AuditEvent from '../models/AuditEvent.js';
 import { ApiError } from '../utils/ApiError.js';
 import { createPresignedGet } from '../services/r2Service.js';
+import { populatePostPresignedUrls } from './postController.js';
 import {
   BIO_MAX_CHARS, DISPLAY_NAME_MAX_CHARS, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE,
 } from '../config/constants.js';
@@ -188,10 +189,17 @@ export async function getUserPosts(req, res) {
 
   const nextCursor = hasMore && posts.length > 0 ? makeCursor(posts[posts.length - 1]) : null;
 
+  const postsWithUrls = await Promise.all(
+    posts.map(async (p) => {
+      const populated = await populatePostPresignedUrls(p);
+      return { ...populated, id: populated._id };
+    })
+  );
+
   res.json({
     success: true,
     data: {
-      posts: posts.map(p => ({ ...p, id: p._id })),
+      posts: postsWithUrls,
       nextCursor,
       hasMore,
     },

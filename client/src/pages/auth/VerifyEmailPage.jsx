@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import api from '../../api/client.js';
 import { useToast } from '../../contexts/ToastContext.jsx';
 
@@ -14,7 +14,6 @@ export default function VerifyEmailPage() {
   const [resendSuccess, setResendSuccess] = useState(false);
 
   const { success } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!token) return;

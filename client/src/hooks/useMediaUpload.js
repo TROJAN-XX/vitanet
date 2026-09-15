@@ -109,7 +109,7 @@ export function useMediaUpload() {
         purpose,
       });
 
-      const { uploadToken, presignedUrl, objectKey } = presignRes.data;
+      const { uploadToken, presignedUrl } = presignRes.data;
       setProgress(50);
 
       // 3. Upload directly to Cloudflare R2 using presigned PUT URL

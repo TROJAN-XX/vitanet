@@ -30,7 +30,7 @@ export default function LoginPage() {
 
     try {
       setLoading(true);
-      await login(email.trim().toLowerCase(), password);
+      await login(email.trim().toLowerCase(), password, turnstileToken);
       success('Welcome back to VitaNet!');
       navigate(from, { replace: true });
     } catch (err) {

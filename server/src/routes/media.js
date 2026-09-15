@@ -9,6 +9,8 @@ const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).cat
 router.post('/presign-upload',        requireAuth, requireVerifiedEmail, presignUploadLimiter, wrap(media.presignUpload));
 router.post('/finalize-upload',       requireAuth, wrap(media.finalizeUpload));
 router.post('/presign-download-batch', requireAuth, wrap(media.presignDownloadBatch));
+router.post('/download-batch',         requireAuth, wrap(media.presignDownloadBatch));
 router.delete('/:mediaId',            requireAuth, wrap(media.deleteMedia));
+router.delete('/:id',                 requireAuth, wrap(media.deleteMedia));
 
 export default router;

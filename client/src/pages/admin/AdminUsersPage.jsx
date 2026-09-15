@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client.js';
 import AppShell from '../../components/layout/AppShell.jsx';
@@ -11,7 +11,7 @@ export default function AdminUsersPage() {
 
   const { success, error: toastError } = useToast();
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const res = await api.get('/admin/users');
@@ -23,11 +23,11 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toastError]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   const handleStatusChange = async (userId, newStatus) => {
     if (!window.confirm(`Are you sure you want to change this user status to ${newStatus}?`)) return;

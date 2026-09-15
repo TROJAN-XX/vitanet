@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import { useToast } from '../../contexts/ToastContext.jsx';
 import TurnstileWidget from '../../components/auth/TurnstileWidget.jsx';
@@ -18,7 +18,6 @@ export default function RegisterPage() {
 
   const { register } = useAuth();
   const { success } = useToast();
-  const navigate = useNavigate();
   const turnstileRef = useRef(null);
 
   const handleSubmit = async (e) => {

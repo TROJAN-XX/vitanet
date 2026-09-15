@@ -15,7 +15,6 @@ import {
   CAPTION_MAX_CHARS,
   MEDIA_ITEMS_PER_POST,
   ALL_ACCEPTED_MIMES,
-  POST_VISIBILITY,
   POSTS_PER_USER_TOTAL,
   POSTS_PER_USER_DAY,
   DEFAULT_PAGE_SIZE,
@@ -30,12 +29,16 @@ const mediaItemInputSchema = z.object({
   mimeType: z.string().refine((val) => ALL_ACCEPTED_MIMES.includes(val), {
     message: 'Unsupported MIME type',
   }),
-  bytes: z.number().int().positive(),
+  bytes: z.number().int().positive().optional(),
+  byteSize: z.number().int().positive().optional(),
   width: z.number().int().positive().nullable().optional(),
   height: z.number().int().positive().nullable().optional(),
   durationSeconds: z.number().positive().nullable().optional(),
   order: z.number().int().min(0).default(0),
-});
+}).transform((m) => ({
+  ...m,
+  bytes: m.bytes || m.byteSize || 0,
+}));
 
 const createPostSchema = z.object({
   caption: z.string().max(CAPTION_MAX_CHARS).default(''),
@@ -97,6 +100,7 @@ export async function populatePostPresignedUrls(post) {
         return {
           ...item,
           url,
+          downloadUrl: url,
         };
       })
     );

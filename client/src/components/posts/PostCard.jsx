@@ -360,7 +360,7 @@ export default function PostCard({ post, onPostDeleted }) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '4px',
+              gap: '6px',
               color: isSaved ? 'var(--color-primary-light)' : 'var(--color-text-secondary)',
               cursor: 'pointer',
               padding: '4px',
@@ -370,6 +370,11 @@ export default function PostCard({ post, onPostDeleted }) {
             <svg width="22" height="22" viewBox="0 0 24 24" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
             </svg>
+            {saveCount > 0 && (
+              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-primary)' }}>
+                {saveCount}
+              </span>
+            )}
           </button>
         </div>
 

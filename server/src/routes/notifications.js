@@ -8,6 +8,7 @@ const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).cat
 
 router.get('/', generalLimiter, requireAuth, wrap(notification.getNotifications));
 router.patch('/read', generalLimiter, requireAuth, wrap(notification.markAsRead));
+router.post('/mark-read', generalLimiter, requireAuth, wrap(notification.markAsRead));
 router.get('/unread-count', generalLimiter, requireAuth, wrap(notification.getUnreadCount));
 
 export default router;

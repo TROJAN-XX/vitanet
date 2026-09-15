@@ -17,6 +17,7 @@ router.post('/refresh',             generalLimiter, wrap(auth.refresh));
 router.post('/logout',              generalLimiter, wrap(auth.logout));
 router.post('/forgot-password',     passwordResetLimiter, verifyTurnstile, wrap(auth.forgotPassword));
 router.post('/reset-password',      generalLimiter, wrap(auth.resetPassword));
+router.patch('/change-password',     generalLimiter, requireAuth, wrap(auth.changePassword));
 router.get('/me',                   generalLimiter, requireAuth, wrap(auth.getMe));
 
 export default router;

@@ -3,7 +3,6 @@ import crypto from 'node:crypto';
 import env from '../config/env.js';
 import {
   ACCESS_TOKEN_EXPIRY,
-  REFRESH_TOKEN_EXPIRY_DAYS,
   REFRESH_TOKEN_EXPIRY_MS,
   MAX_SESSIONS_PER_USER,
 } from '../config/constants.js';
@@ -107,7 +106,7 @@ export async function rotateRefreshToken(refreshToken, user) {
   }
 
   // Create new session (rotation)
-  const { refreshToken: newRefresh, session: newSession } =
+  const { refreshToken: newRefresh } =
     await createRefreshSession(user.id || user._id, null, null);
 
   const accessToken = generateAccessToken(user);

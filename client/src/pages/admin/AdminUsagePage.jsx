@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client.js';
 import AppShell from '../../components/layout/AppShell.jsx';
@@ -11,7 +11,7 @@ export default function AdminUsagePage() {
 
   const { success, error: toastError } = useToast();
 
-  const fetchUsage = async () => {
+  const fetchUsage = useCallback(async () => {
     try {
       setLoading(true);
       const res = await api.get('/admin/usage');
@@ -23,11 +23,11 @@ export default function AdminUsagePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toastError]);
 
   useEffect(() => {
     fetchUsage();
-  }, []);
+  }, [fetchUsage]);
 
   const handleTriggerCleanup = async () => {
     try {

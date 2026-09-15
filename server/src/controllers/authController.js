@@ -51,6 +51,11 @@ const resetPasswordSchema = z.object({
   password: z.string().min(PASSWORD_MIN_CHARS).max(PASSWORD_MAX_CHARS),
 });
 
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(PASSWORD_MIN_CHARS).max(PASSWORD_MAX_CHARS),
+});
+
 // ── Cookie Config ──
 function getRefreshCookieOptions() {
   return {
@@ -468,6 +473,44 @@ export async function getMe(req, res) {
   res.json({
     success: true,
     data: { user: sanitizeUserForClient(req.user) },
+    requestId: req.requestId,
+  });
+}
+
+/**
+ * PATCH /auth/change-password
+ */
+export async function changePassword(req, res) {
+  const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
+
+  const user = await User.findById(req.user._id).select('+passwordHash');
+  if (!user) {
+    throw ApiError.notFound('User not found');
+  }
+
+  const isCurrentValid = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!isCurrentValid) {
+    throw ApiError.badRequest('Current password is incorrect');
+  }
+
+  if (currentPassword === newPassword) {
+    throw ApiError.badRequest('New password must be different from current password');
+  }
+
+  user.passwordHash = await bcrypt.hash(newPassword, 12);
+  await user.save();
+
+  await AuditEvent.create({
+    actorUserId: user._id,
+    action: 'password_change',
+    targetType: 'user',
+    targetId: user._id,
+    metadata: { ip: req.ip },
+  });
+
+  res.json({
+    success: true,
+    data: { message: 'Password updated successfully' },
     requestId: req.requestId,
   });
 }

@@ -7,7 +7,7 @@ import {
   IMAGE_MAX_BYTES, VIDEO_MAX_BYTES, AVATAR_MAX_BYTES,
   PRESIGNED_PUT_EXPIRY_SECONDS, R2_KEY_PATTERNS,
 } from '../config/constants.js';
-import { createPresignedPut, headObject, createPresignedGet, batchPresignedGet } from '../services/r2Service.js';
+import { createPresignedPut, headObject, batchPresignedGet } from '../services/r2Service.js';
 import { checkUploadQuota, recordMediaUsage, markMediaPendingDelete } from '../services/quotaService.js';
 import MediaUsage from '../models/MediaUsage.js';
 
@@ -15,16 +15,33 @@ import MediaUsage from '../models/MediaUsage.js';
 
 const presignSchema = z.object({
   mimeType: z.string().refine(m => ALL_ACCEPTED_MIMES.includes(m), 'Unsupported file type'),
-  bytes: z.number().int().positive(),
-  context: z.enum(['post', 'avatar']),
+  bytes: z.number().int().positive().optional(),
+  fileSizeBytes: z.number().int().positive().optional(),
+  fileName: z.string().optional(),
+  context: z.enum(['post', 'avatar', 'header']).optional(),
+  purpose: z.enum(['post', 'avatar', 'header']).optional(),
   postId: z.string().optional(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
   durationSeconds: z.number().positive().max(30).optional(),
+}).transform(d => ({
+  ...d,
+  bytes: d.bytes || d.fileSizeBytes,
+  context: d.context || d.purpose || 'post',
+})).refine(d => typeof d.bytes === 'number' && d.bytes > 0, {
+  message: 'bytes or fileSizeBytes must be a positive number',
 });
 
 const finalizeSchema = z.object({
-  uploadId: z.string().min(1),
+  uploadId: z.string().optional(),
+  uploadToken: z.string().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+}).transform(d => ({
+  ...d,
+  uploadId: d.uploadId || d.uploadToken,
+})).refine(d => typeof d.uploadId === 'string' && d.uploadId.length > 0, {
+  message: 'uploadId or uploadToken is required',
 });
 
 const batchDownloadSchema = z.object({
@@ -111,6 +128,7 @@ export async function presignUpload(req, res) {
     success: true,
     data: {
       uploadId,
+      uploadToken: uploadId,
       mediaId,
       objectKey,
       presignedUrl,
@@ -179,8 +197,10 @@ export async function finalizeUpload(req, res) {
   res.json({
     success: true,
     data: {
+      mediaId: session.uploadId,
       objectKey: session.objectKey,
       bytes: head.contentLength,
+      byteSize: head.contentLength,
       mediaType,
     },
     requestId: req.requestId,

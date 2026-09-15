@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client.js';
 import AppShell from '../../components/layout/AppShell.jsx';
@@ -12,7 +12,7 @@ export default function AdminReportsPage() {
 
   const { success, error: toastError } = useToast();
 
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
       const res = await api.get(`/admin/reports?status=${statusFilter}`);
@@ -24,11 +24,11 @@ export default function AdminReportsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, toastError]);
 
   useEffect(() => {
     fetchReports();
-  }, [statusFilter]);
+  }, [fetchReports]);
 
   const handleResolve = async (reportId, resolution, notes = '') => {
     try {

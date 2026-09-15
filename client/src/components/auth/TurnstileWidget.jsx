@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 
 const TurnstileWidget = forwardRef(function TurnstileWidget({ onVerify, onError, onExpire }, ref) {
   const containerRef = useRef(null);
   const widgetIdRef = useRef(null);
-  const [isLoaded, setIsLoaded] = useState(false);
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
   useImperativeHandle(ref, () => ({
@@ -33,7 +32,6 @@ const TurnstileWidget = forwardRef(function TurnstileWidget({ onVerify, onError,
             'error-callback': () => onError?.(),
             'expired-callback': () => onExpire?.(),
           });
-          setIsLoaded(true);
         } catch {
           // fallback if rendering fails
           onVerify?.('cf-turnstile-dev-token');

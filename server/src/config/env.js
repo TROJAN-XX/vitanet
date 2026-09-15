@@ -56,12 +56,35 @@ let env;
 try {
   env = envSchema.parse(process.env);
 } catch (err) {
-  if (err instanceof z.ZodError) {
-    const messages = err.issues.map(i => `  ${i.path.join('.')}: ${i.message}`).join('\n');
-    console.error(`\n❌ Environment validation failed:\n${messages}\n`);
-    console.error('Copy server/.env.example to server/.env and fill in all required values.\n');
+  if (process.env.NODE_ENV === 'test') {
+    env = envSchema.parse({
+      NODE_ENV: 'test',
+      PORT: 4000,
+      APP_ORIGIN: 'http://localhost:5173',
+      API_ORIGIN: 'http://localhost:4000',
+      MONGODB_URI: 'mongodb://localhost:27017/vitanet-test',
+      JWT_ACCESS_SECRET: 'test_jwt_access_secret_min_32_chars_long!!',
+      JWT_REFRESH_SECRET: 'test_jwt_refresh_secret_min_32_chars_long!',
+      COOKIE_SECRET: 'test_cookie_secret_16chars',
+      TURNSTILE_SECRET_KEY: 'test_turnstile_secret',
+      R2_ACCOUNT_ID: 'test_r2_account',
+      R2_ACCESS_KEY_ID: 'test_r2_key',
+      R2_SECRET_ACCESS_KEY: 'test_r2_secret',
+      R2_BUCKET_NAME: 'test-bucket',
+      R2_ENDPOINT: 'https://test.r2.cloudflarestorage.com',
+      BREVO_API_KEY: 'test_brevo_key',
+      BREVO_SENDER_EMAIL: 'test@vitanet.local',
+      ADMIN_EMAIL: 'admin@vitanet.local',
+      MAINTENANCE_SECRET: 'test_maintenance_secret_16chars',
+    });
+  } else {
+    if (err instanceof z.ZodError) {
+      const messages = err.issues.map(i => `  ${i.path.join('.')}: ${i.message}`).join('\n');
+      console.error(`\n❌ Environment validation failed:\n${messages}\n`);
+      console.error('Copy server/.env.example to server/.env and fill in all required values.\n');
+    }
+    process.exit(1);
   }
-  process.exit(1);
 }
 
 export default env;
