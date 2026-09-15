@@ -11,6 +11,9 @@
 | `server/tests/quota.test.js` | Validates 75 MB per-user quota and 7 GB global cap limits. |
 | `server/tests/scoring.test.js` | Validates explore feed transparent ranking formula and gravity decay mathematics. |
 | `server/tests/validation.test.js` | Validates username regex, password minimum lengths, and MIME type allowlists. |
+| `server/tests/apiError.test.js` | Validates custom ApiError factory methods, status codes, and error payloads. |
+| `server/tests/tokenService.test.js` | Validates SHA-256 session token hashing and JWT access token structure. |
+| `server/tests/moderation.test.js` | Validates moderation action types, categories, and resolution lifecycle enums. |
 
 ### Master Documentation Suite
 | File | Purpose |
@@ -26,6 +29,7 @@
 | `docs/MIGRATION_AND_SCALE.md` | Transition paths and cost projections for scaling beyond 100 users. |
 | `docs/LEGAL_READINESS.md` | DPDP Act 2023, IT Intermediary Rules, and GDPR compliance framework. |
 | `docs/TROUBLESHOOTING.md` | Common troubleshooting scenarios and remediation runbooks. |
+| `docs/PROJECT_COMPLETION_REPORT.md` | Complete multi-phase verification report and audit trail. |
 
 ## Design Decisions
 
@@ -37,6 +41,7 @@
    - All system boundaries, rate limits, schema indexes, and operational runbooks are documented alongside the source code.
 
 ## Constraints Validated
-- ✅ All 14 unit tests passing cleanly
+- ✅ All 27 unit tests across 6 test suites passing cleanly
+- ✅ 0 ESLint errors and 0 warnings on both server and client
 - ✅ 100% documentation coverage across all 10 project phases
 - ✅ Zero build errors across server and client

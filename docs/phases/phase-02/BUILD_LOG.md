@@ -38,8 +38,8 @@
 |------|---------|
 | `src/services/emailService.js` | Brevo API transactional mailer with hard 300 emails/day application counter |
 | `src/services/tokenService.js` | Access token JWT (15m), refresh token generation (30d), SHA-256 session hashing |
-| `src/controllers/authController.js` | Register, verify email, resend verification, login, refresh, logout, forgot/reset password, getMe |
-| `src/routes/auth.js` | Auth endpoints wired with rate limiters and Turnstile middleware |
+| `src/controllers/authController.js` | Register, verify email, resend verification, login, refresh, logout, forgot/reset password, change password, getMe |
+| `src/routes/auth.js` | Auth endpoints wired with rate limiters and Turnstile middleware (including PATCH /change-password) |
 
 ## Design Decisions
 

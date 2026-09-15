@@ -31,18 +31,19 @@ To guarantee constant-time queries without triggering Atlas memory alerts or ful
   - `{ expiresAt: 1 }` (TTL: 30 days)
 
 ### `EmailToken`
-- **Fields**: `userId`, `tokenHash`, `type` (`verify_email`, `reset_password`), `expiresAt`, `consumedAt`.
+- **Fields**: `userId`, `tokenHash`, `purpose` (`verify_email`, `password_reset`), `expiresAt`, `usedAt`.
 - **Indexes**:
   - `{ tokenHash: 1 }` (unique)
   - `{ expiresAt: 1 }` (TTL: 24 hours)
 
 ### `Post`
-- **Fields**: `authorId`, `caption`, `media` (`[{ mediaId, objectKey, byteSize, mimeType, width, height }]`), `contentWarning`, `topics`, `visibility` (`public`, `followers_only`), `likeCount`, `saveCount`, `commentCount`, `exploreScore`, `deletedAt`.
+- **Fields**: `authorId`, `caption`, `media` (`[{ mediaId, objectKey, bytes, byteSize, mimeType, width, height, durationSeconds, order }]`), `contentWarning`, `topics`, `visibility` (`public`, `followers_only`), `likeCount`, `saveCount`, `commentCount`, `exploreScore`, `moderationStatus` (`active`, `removed`), `deletedAt`.
 - **Indexes**:
   - `{ authorId: 1, createdAt: -1 }`
   - `{ exploreScore: -1, createdAt: -1 }`
   - `{ topics: 1 }`
   - `{ deletedAt: 1 }`
+  - `{ moderationStatus: 1 }`
 
 ### `Follow`
 - **Fields**: `followerId`, `followingId`.
@@ -63,7 +64,7 @@ To guarantee constant-time queries without triggering Atlas memory alerts or ful
   - `{ userId: 1, createdAt: -1 }`
 
 ### `Comment`
-- **Fields**: `postId`, `authorId`, `body`, `deletedAt`.
+- **Fields**: `postId`, `authorId`, `body`, `status` (`active`, `removed`), `deletedAt`.
 - **Indexes**:
   - `{ postId: 1, createdAt: -1 }`
   - `{ authorId: 1 }`
@@ -80,32 +81,34 @@ To guarantee constant-time queries without triggering Atlas memory alerts or ful
   - `{ muterId: 1, mutedId: 1 }` (unique compound)
 
 ### `Report`
-- **Fields**: `reporterId`, `targetType` (`post`, `comment`, `user`), `targetId`, `reason`, `details`, `status` (`pending`, `resolved`, `dismissed`), `resolution`, `resolvedBy`, `notes`.
+- **Fields**: `reporterId`, `targetType` (`post`, `comment`, `user`), `targetId`, `reason` (`spam`, `harassment`, `hate`, `sexual_content`, `violence`, `illegal_activity`, `impersonation`, `copyright`, `privacy_violation`, `self_harm`, `other`), `details`, `status` (`pending`, `reviewed`, `resolved`, `dismissed`), `reviewedBy`, `reviewedAt`, `resolution` (`no_action`, `warning`, `remove_content`, `suspend_user`, `ban_user`).
 - **Indexes**:
   - `{ status: 1, createdAt: -1 }`
-  - `{ targetType: 1, targetId: 1 }`
+  - `{ reporterId: 1 }`
 
 ### `Notification`
-- **Fields**: `recipientId`, `actorId`, `type` (`like`, `comment`, `follow`), `postId`, `commentId`, `isRead`.
+- **Fields**: `recipientId`, `actorId`, `type` (`like`, `comment`, `follow`, `mention`, `moderation`), `postId`, `commentId`, `readAt`.
 - **Indexes**:
-  - `{ recipientId: 1, isRead: 1 }`
   - `{ recipientId: 1, createdAt: -1 }`
+  - `{ recipientId: 1, readAt: 1 }`
 
 ### `AuditEvent`
-- **Fields**: `actorUserId`, `action`, `targetType`, `targetId`, `details`, `ipAddress`, `userAgent`.
+- **Fields**: `actorUserId`, `action`, `targetType` (`user`, `post`, `comment`, `report`, `media`, `system`), `targetId`, `metadata`.
 - **Indexes**:
-  - `{ actorUserId: 1, createdAt: -1 }`
+  - `{ createdAt: -1 }`
   - `{ action: 1, createdAt: -1 }`
+  - `{ actorUserId: 1, createdAt: -1 }`
 
 ### `MediaUsage`
-- **Fields**: `userId`, `objectKey`, `byteSize`, `mimeType`, `purpose`, `status` (`uploading`, `completed`, `pending_delete`, `deleted`).
+- **Fields**: `userId`, `objectKey`, `bytes`, `mediaType` (`image`, `video`, `avatar`), `status` (`active`, `pending_delete`, `deleted`), `deletedAt`.
 - **Indexes**:
   - `{ objectKey: 1 }` (unique)
   - `{ userId: 1, status: 1 }`
   - `{ status: 1 }`
 
 ### `UploadSession`
-- **Fields**: `userId`, `uploadToken`, `objectKey`, `requestedBytes`, `mimeType`, `purpose`, `status` (`pending`, `completed`, `expired`, `failed`), `expiresAt`.
+- **Fields**: `userId`, `uploadId`, `objectKey`, `mimeType`, `expectedBytes`, `status` (`pending`, `completed`, `expired`, `failed`), `expiresAt`, `completedAt`.
 - **Indexes**:
-  - `{ uploadToken: 1 }` (unique)
+  - `{ uploadId: 1 }` (unique)
   - `{ expiresAt: 1 }` (TTL: 15 minutes)
+  - `{ status: 1, expiresAt: 1 }`
